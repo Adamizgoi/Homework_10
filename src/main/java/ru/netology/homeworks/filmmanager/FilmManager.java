@@ -6,24 +6,25 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FilmManager {
-    private FilmItem[] films = new FilmItem[0];
-    private int lastFilmsToShow = 10;
-    private FilmItem[] repoForLastFilms = new FilmItem[lastFilmsToShow];
 
-    //установка кол-ва последних фильмов, которые нужно показать методом findLast
-    public void setLastFilmsToShow(int numberOfFilms) {
-        if (checkLastFilmsToShow(numberOfFilms)) {
-            lastFilmsToShow = numberOfFilms;
-        }
+    private FilmRepo repo;
+    //значение по-умолчанию числа фильмов для метода "покажи последние N фильмов"
+    private int lastFilmsToShow = 10;
+
+    public FilmManager(FilmRepo repo) {
+        this.repo = repo;
     }
 
-    //проверка, ок ли число, которое пытаются установить методом setLastFilmToShow
-    private boolean checkLastFilmsToShow(int numbersOfFilms) {
-        return numbersOfFilms >= 0;
+    //метод для сохранения фильмов
+    public void save(FilmItem oneNewFilm) {
+        if (checkId(oneNewFilm)) {
+            repo.save(oneNewFilm);
+        }
     }
 
     //проверка, чтобы айдишники были больше нуля и чтобы нельзя было сохранять два одинаковых
     private boolean checkId(FilmItem someFilm) {
+        FilmItem[] films = repo.findAll();
         if (someFilm.getId() <= 0) {
             return false;
         }
@@ -35,68 +36,67 @@ public class FilmManager {
         return true;
     }
 
-    //метод для сохранения фильмов
-    public void save(FilmItem oneNewFilm) {
-        FilmItem[] temporary = new FilmItem[films.length + 1];
-
-        for (int i = 0; i < films.length; i++) {
-            temporary[i] = films[i];
-        }
-        temporary[temporary.length - 1] = oneNewFilm;
-
-        if (checkId(oneNewFilm)) {
-            films = temporary;
-        }
-    }
-
     //метод для удаления фильмов по айди
     public void removeById(int id) {
-        FilmItem[] temporary = new FilmItem[films.length - 1];
-        int copyToIndex = 0;
-        for (FilmItem someFilm : films) {
-            if (someFilm.getId() != id) {
-                temporary[copyToIndex] = someFilm;
-                copyToIndex++;
-            }
-        }
-        films = temporary;
+        repo.removeById(id);
+    }
+
+    //метод показывает все сохраненные фильмы
+    public FilmItem[] findAll() {
+        return repo.findAll();
     }
 
     //метод, возвращающий последние (10 по-умолчанию) фильмов
     public FilmItem[] findLast() {
+        FilmItem[] films = repo.findAll();
+        FilmItem[] lastFilms = new FilmItem[lastFilmsToShow];
+
         int copyToIndex = 0;
-        FilmItem tmpFilmRepo;
+        FilmItem tmpFilm;
+
         for (int lastFilmIndex = films.length; lastFilmIndex >= 1 && copyToIndex < lastFilmsToShow; lastFilmIndex--) {
-            tmpFilmRepo = films[lastFilmIndex - 1];
-            repoForLastFilms[copyToIndex] = tmpFilmRepo;
-            copyToIndex++;
+            tmpFilm = films[lastFilmIndex - 1];
+            lastFilms[copyToIndex] = tmpFilm;
+            if (copyToIndex < lastFilmsToShow) {
+                copyToIndex++;
+            }
         }
-        removeIfNull(repoForLastFilms);
-        return repoForLastFilms;
+        lastFilms = findLastArrayResizer(lastFilms);
+        return lastFilms;
     }
 
-    //метод меняет длину массива repoForLastFilms, чтобы findLast работала после setLastFilmsToShow
-    private void removeIfNull(FilmItem[] someRepo) {
+    private FilmItem[] findLastArrayResizer (FilmItem[] lastFilms) {
         FilmItem[] tmpRepo;
         int tmpRepoLength = 0;
-        for (FilmItem someFilm : someRepo) {
+        for (FilmItem someFilm : lastFilms) {
             if (someFilm != null) {
                 tmpRepoLength++;
             }
         }
         tmpRepo = new FilmItem[tmpRepoLength];
         int copyToIndex = 0;
-        for (FilmItem someFilm : someRepo) {
+        for (FilmItem someFilm : lastFilms) {
             if (copyToIndex < tmpRepoLength) {
                 tmpRepo[copyToIndex] = someFilm;
                 copyToIndex++;
             }
         }
-        repoForLastFilms = tmpRepo;
+        lastFilms = tmpRepo;
+        return lastFilms;
     }
 
-    //метод показывает все сохраненные фильмы
-    public FilmItem[] findAll() {
-        return films;
+    //установка кол-ва последних фильмов, которые нужно показать методом findLast
+    public void setLastFilmsToShow(int numberOfFilms) {
+        if (checkLastFilmsToShow(numberOfFilms)) {
+            lastFilmsToShow = numberOfFilms;
+        }
+    }
+
+    //проверка, ок ли число, которое пытаются установить методом setLastFilmToShow
+    private boolean checkLastFilmsToShow(int numbersOfFilms) {
+        if (numbersOfFilms >= 0) {
+            return true;
+        }
+        return false;
     }
 }

@@ -1,7 +1,12 @@
 package ru.netology.homeworks.filmmanager;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import org.mockito.Mockito;
+
+import static org.mockito.Mockito.*;
 
 public class FilmManagerTest {
 
@@ -23,24 +28,29 @@ public class FilmManagerTest {
     FilmItem film16error = new FilmItem(0, "First", "Horror", "https://");
     FilmItem film17error = new FilmItem(-1, "Bloodshot 2", "Action", "https://...");
 
-    FilmManager manager = new FilmManager();
+    FilmRepo repo = new FilmRepo();
+    FilmManager manager = new FilmManager(repo);
+
+    FilmRepo mockRepo = Mockito.mock(FilmRepo.class);
+    FilmManager mockManager = new FilmManager(mockRepo);
 
     @Test
     public void shouldBeOpportunityToAddNewFilms() {
         manager.save(film1);
 
         FilmItem[] expected = {film1};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
 
+    //пара тест-кейсов должна быть с макированием
     @Test
     public void shouldNotBeOpportunityToSaveFilmWithZeroId() {
         manager.save(film16error);
 
         FilmItem[] expected = {};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -51,7 +61,7 @@ public class FilmManagerTest {
         manager.save(film12error);
 
         FilmItem[] expected = {film1};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -61,7 +71,7 @@ public class FilmManagerTest {
         manager.save(film17error);
 
         FilmItem[] expected = {};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -72,7 +82,7 @@ public class FilmManagerTest {
         manager.save(film1);
 
         FilmItem[] expected = {film13, film1};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -83,7 +93,7 @@ public class FilmManagerTest {
         manager.save(film3);
 
         FilmItem[] expected = {film14, film3};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -94,7 +104,7 @@ public class FilmManagerTest {
         manager.save(film1);
 
         FilmItem[] expected = {film15, film1};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -107,7 +117,7 @@ public class FilmManagerTest {
         manager.removeById(film2.getId());
 
         FilmItem[] expected = {film1, film3};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -147,21 +157,14 @@ public class FilmManagerTest {
         Assertions.assertArrayEquals(expected, actual);
     }
 
+    //тест-кейс с использованием Mockito
     @Test
     public void shouldShowLastTenFilmsIfArrayConsistTenFilms() {
-        manager.save(film1);
-        manager.save(film2);
-        manager.save(film3);
-        manager.save(film4);
-        manager.save(film5);
-        manager.save(film6);
-        manager.save(film7);
-        manager.save(film8);
-        manager.save(film9);
-        manager.save(film10);
+        FilmItem[] films = {film1, film2, film3, film4, film5, film6, film7, film8, film9, film10};
+        doReturn(films).when(mockRepo).findAll();
 
         FilmItem[] expected = {film10, film9, film8, film7, film6, film5, film4, film3, film2, film1};
-        FilmItem[] actual = manager.findLast();
+        FilmItem[] actual = mockManager.findLast();
 
         Assertions.assertArrayEquals(expected, actual);
     }

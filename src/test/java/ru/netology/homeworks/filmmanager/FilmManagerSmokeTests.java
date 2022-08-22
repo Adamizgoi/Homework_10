@@ -17,14 +17,15 @@ public class FilmManagerSmokeTests {
     FilmItem film10 = new FilmItem(10, "University", "Science film", "https//...");
     FilmItem film11 = new FilmItem(11, "Lost", "Serial", "https//...");
 
-    FilmManager manager = new FilmManager();
+    FilmRepo repo = new FilmRepo();
+    FilmManager manager = new FilmManager(repo);
 
     @Test
     public void shouldBeOpportunityToAddNewFilms() {
         manager.save(film1);
 
         FilmItem[] expected = {film1};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
@@ -37,7 +38,7 @@ public class FilmManagerSmokeTests {
         manager.removeById(film2.getId());
 
         FilmItem[] expected = {film1, film3};
-        FilmItem[] actual = manager.getFilms();
+        FilmItem[] actual = manager.findAll();
 
         Assertions.assertArrayEquals(expected, actual);
     }
